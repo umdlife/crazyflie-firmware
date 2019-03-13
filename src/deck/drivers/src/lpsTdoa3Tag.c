@@ -61,6 +61,7 @@ The implementation must handle
 #include "log.h"
 #include "param.h"
 #include "uart2.h"
+#include "default_packets.h"
 
 // Positions for sent LPP packets
 #define LPS_TDOA3_TYPE 0
@@ -264,7 +265,13 @@ static uint32_t onEvent(dwDevice_t *dev, uwbEvent_t event) {
 }
 
 static void sendTdoaToEstimatorCallback(tdoaMeasurement_t* tdoaMeasurement) {
-  uart2SendData(sizeof(tdoaMeasurement_t), (uint8_t *) tdoaMeasurement);
+  static TDOA3PACKET uartPacket = {
+    .id = DEFAULT_PACKET_ID_TDOA3_RANGE,
+    .len = sizeof(TDOA3PACKET),
+  };
+  memcpy((void*) &uartPacket.data, (void*)tdoaMeasurement, sizeof(tdoaMeasurement));
+  uart2SendData(sizeof(TDOA3PACKET), (uint8_t *) &uartPacket);
+
 
   estimatorKalmanEnqueueTDOA(tdoaMeasurement);
 
