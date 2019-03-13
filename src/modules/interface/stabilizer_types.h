@@ -50,7 +50,7 @@ struct vec3_s {
   float x;
   float y;
   float z;
-};
+} __attribute__((__packed__));
 
 typedef struct vec3_s vector_t;
 typedef struct vec3_s point_t;
@@ -81,7 +81,7 @@ typedef struct tdoaMeasurement_s {
   point_t anchorPosition[2];
   float distanceDiff;
   float stdDev;
-} tdoaMeasurement_t;
+} __attribute__((__packed__)) tdoaMeasurement_t;
 
 typedef struct baro_s {
   float pressure;           // mbar

@@ -60,6 +60,7 @@ The implementation must handle
 #include "cfassert.h"
 #include "log.h"
 #include "param.h"
+#include "uart2.h"
 
 // Positions for sent LPP packets
 #define LPS_TDOA3_TYPE 0
@@ -263,6 +264,8 @@ static uint32_t onEvent(dwDevice_t *dev, uwbEvent_t event) {
 }
 
 static void sendTdoaToEstimatorCallback(tdoaMeasurement_t* tdoaMeasurement) {
+  uart2SendData(sizeof(tdoaMeasurement_t), (uint8_t *) tdoaMeasurement);
+
   estimatorKalmanEnqueueTDOA(tdoaMeasurement);
 
   #ifdef LPS_2D_POSITION_HEIGHT
