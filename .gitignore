@@ -19,3 +19,10 @@ tags
 /generated-test/**
 
 current_platform.mk
+
+*.bin
+*.dfu
+*.hex
+*.elf
+*.map
+
