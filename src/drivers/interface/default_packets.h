@@ -24,8 +24,8 @@
  * default_packets.h: Packet definition to be sent through UART.
  */
 
+#include "uart2.h"
 #include "stabilizer_types.h"
-#include "crc.h"
 
 #define DEFAULT_PACKET_ID_STATUS 0
 #define DEFAULT_PACKET_ID_POSE 1
@@ -38,14 +38,14 @@ typedef struct vector3_t {
   float x;
   float y;
   float z;
-} __attribute__((__packed__)) VECTOR3;
+} VECTOR3;
 
 typedef struct vector4_t {
   float x;
   float y;
   float z;
   float w;
-} __attribute__((__packed__)) VECTOR4;
+} VECTOR4;
 
 typedef struct posePacket_t {
     uint8_t len;
@@ -53,7 +53,7 @@ typedef struct posePacket_t {
     uint32_t timestamp;
     VECTOR3 position;
     VECTOR4 orientation;
-} __attribute__((__packed__)) POSEPACKET;
+} POSEPACKET;
 
 typedef struct imuPacket_t {
     uint8_t len;
@@ -62,13 +62,13 @@ typedef struct imuPacket_t {
     VECTOR3 acc;
     VECTOR3 gyro;
     float baro;
-} __attribute__((__packed__)) IMUPACKET;
+} IMURAWPACKET;
 
 typedef struct tdoa3Packet_t {
     uint8_t len;
     uint8_t id;
     tdoaMeasurement_t data;
-} __attribute__((__packed__)) TDOA3PACKET;
+} TDOA3PACKET;
 
 
 

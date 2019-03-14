@@ -53,6 +53,7 @@
 #include "bmi088.h"
 #include "bmp3.h"
 #include "bstdr_types.h"
+#include "default_packets.h"
 
 #define GYRO_ADD_RAW_AND_VARIANCE_LOG_VALUES
 
@@ -323,12 +324,37 @@ static void sensorsTask(void *param)
         baroMeasDelay = baroMeasDelayMin;
       }
     }
+
+    static IMURAWPACKET uartPacket = {
+      .id = DEFAULT_PACKET_ID_IMU_ALL_RAW,
+      .len = sizeof(IMURAWPACKET),
+    };
+
+    // uartPacket.acc.x = sensorData.acc.x;
+    // uartPacket.acc.y = sensorData.acc.y;
+    // uartPacket.acc.z = sensorData.acc.z;
+    // uartPacket.gyro.x = sensorData.gyro.x;
+    // uartPacket.gyro.y = sensorData.gyro.y;
+    // uartPacket.gyro.z = sensorData.gyro.z;
+    uartPacket.acc.x = 0;
+    uartPacket.acc.y = 1;
+    uartPacket.acc.z = 2;
+    uartPacket.gyro.x = 3;
+    uartPacket.gyro.y = 4;
+    uartPacket.gyro.z = 5;
+
     xQueueOverwrite(accelerometerDataQueue, &sensorData.acc);
     xQueueOverwrite(gyroDataQueue, &sensorData.gyro);
     if (isBarometerPresent)
     {
       xQueueOverwrite(barometerDataQueue, &sensorData.baro);
+      uartPacket.baro = 6;
     }
+
+    static uint8_t prefix[] = "TTTTTTTTTTTTTTT\nTTT";
+    
+    uart2SendData(16, (uint8_t *) prefix);
+    uart2SendData(uartPacket.len, (uint8_t *) &uartPacket);
 
     xSemaphoreGive(dataReady);
   }
