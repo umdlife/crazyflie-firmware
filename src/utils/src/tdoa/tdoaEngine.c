@@ -52,6 +52,9 @@ The implementation must handle
 #include "tdoaStats.h"
 #include "clockCorrectionEngine.h"
 #include "physicalConstants.h"
+#include "uart2.h"
+#include "mavlink/roadrunner/mavlink.h"
+#include "mavlink/roadrunner/roadrunner.h"
 
 #define MEASUREMENT_NOISE_STD 0.15f
 
@@ -81,6 +84,28 @@ static void enqueueTDOA(const tdoaAnchorContext_t* anchorACtx, const tdoaAnchorC
 
       uint8_t idA = tdoaStorageGetId(anchorACtx);
       uint8_t idB = tdoaStorageGetId(anchorBCtx);
+
+      static mavlink_message_t mav_msg;
+      static mavlink_tdoa_measurement_t msg;
+      
+      msg.dist_diff = tdoa.distanceDiff;
+      msg.stddev = tdoa.stdDev;
+      msg.anchor_ax = anchorACtx->anchorInfo->position.x;
+      msg.anchor_ay = anchorACtx->anchorInfo->position.y;
+      msg.anchor_az = anchorACtx->anchorInfo->position.z;
+      msg.anchor_bx = anchorBCtx->anchorInfo->position.x;
+      msg.anchor_by = anchorBCtx->anchorInfo->position.y;
+      msg.anchor_bz = anchorBCtx->anchorInfo->position.z;
+      memcpy(_MAV_PAYLOAD_NON_CONST(&mav_msg), &msg, MAVLINK_MSG_ID_TDOA_MEASUREMENT_LEN);
+
+      mavlink_msg_tdoa_measurement_encode(
+        10, 200, &mav_msg, &msg
+      );
+
+	    static uint8_t buf[300];
+      unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mav_msg);
+      uart2SendData(len , buf);
+
       if (idA == stats->anchorId && idB == stats->remoteAnchorId) {
         stats->tdoa = distanceDiff;
       }

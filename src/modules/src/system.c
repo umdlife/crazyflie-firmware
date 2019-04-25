@@ -150,9 +150,7 @@ void systemTask(void *arg)
 #ifdef ENABLE_UART1
   uart1Init();
 #endif
-#ifdef ENABLE_UART2
-  uart2Init();
-#endif
+  uart2Init(921600);
 
   //Init the high-levels modules
   systemInit();
