@@ -24,7 +24,7 @@ extern "C" {
 #endif
 
 #ifndef MAVLINK_MESSAGE_CRCS
-#define MAVLINK_MESSAGE_CRCS {{1, 107, 28, 0, 0, 0}, {2, 56, 40, 0, 0, 0}, {3, 182, 32, 0, 0, 0}, {4, 176, 32, 0, 0, 0}}
+#define MAVLINK_MESSAGE_CRCS {{1, 61, 28, 0, 0, 0}, {2, 56, 40, 0, 0, 0}, {3, 182, 32, 0, 0, 0}, {4, 176, 32, 0, 0, 0}}
 #endif
 
 #include "../protocol.h"
@@ -47,7 +47,7 @@ extern "C" {
 #endif
 
 // MESSAGE DEFINITIONS
-#include "./mavlink_msg_gyro_acc_baro.h"
+#include "./mavlink_msg_gyro_acc_temp.h"
 #include "./mavlink_msg_position.h"
 #include "./mavlink_msg_quaternion.h"
 #include "./mavlink_msg_tdoa_measurement.h"
@@ -59,8 +59,8 @@ extern "C" {
 #define MAVLINK_THIS_XML_IDX 0
 
 #if MAVLINK_THIS_XML_IDX == MAVLINK_PRIMARY_XML_IDX
-# define MAVLINK_MESSAGE_INFO {MAVLINK_MESSAGE_INFO_GYRO_ACC_BARO, MAVLINK_MESSAGE_INFO_POSITION, MAVLINK_MESSAGE_INFO_QUATERNION, MAVLINK_MESSAGE_INFO_TDOA_MEASUREMENT}
-# define MAVLINK_MESSAGE_NAMES {{ "GYRO_ACC_BARO", 1 }, { "POSITION", 2 }, { "QUATERNION", 3 }, { "TDOA_MEASUREMENT", 4 }}
+# define MAVLINK_MESSAGE_INFO {MAVLINK_MESSAGE_INFO_GYRO_ACC_TEMP, MAVLINK_MESSAGE_INFO_POSITION, MAVLINK_MESSAGE_INFO_QUATERNION, MAVLINK_MESSAGE_INFO_TDOA_MEASUREMENT}
+# define MAVLINK_MESSAGE_NAMES {{ "GYRO_ACC_TEMP", 1 }, { "POSITION", 2 }, { "QUATERNION", 3 }, { "TDOA_MEASUREMENT", 4 }}
 # if MAVLINK_COMMAND_24BIT
 #  include "../mavlink_get_info.h"
 # endif

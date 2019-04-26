@@ -71,6 +71,10 @@
 
 #include "math.h"
 #include "cf_math.h"
+#include "mavlink/roadrunner/mavlink.h"
+#include "mavlink/roadrunner/roadrunner.h"
+#include "uart2.h"
+
 
 //#define KALMAN_USE_BARO_UPDATE
 //#define KALMAN_NAN_CHECK
@@ -399,6 +403,26 @@ void estimatorKalman(state_t *state, sensorData_t *sensors, control_t *control, 
   if (sensorsReadMag(&sensors->mag)) {
       // Currently the magnetometer doesn't play a part in the estimation
   }
+
+  /* MAVLink Layer Gyro, TODO: find better location */
+  static mavlink_message_t mav_msg;
+  static mavlink_gyro_acc_temp_t msg;
+  
+  msg.xacc = GRAVITY_MAGNITUDE * sensors->acc.x;
+  msg.yacc = GRAVITY_MAGNITUDE * sensors->acc.y;
+  msg.zacc = GRAVITY_MAGNITUDE * sensors->acc.z;
+  msg.xgyro = sensors->gyro.x * DEG_TO_RAD;
+  msg.ygyro = sensors->gyro.y * DEG_TO_RAD;
+  msg.zgyro = sensors->gyro.z * DEG_TO_RAD;
+  memcpy(_MAV_PAYLOAD_NON_CONST(&mav_msg), &msg, MAVLINK_MSG_ID_GYRO_ACC_TEMP_LEN);
+
+  mavlink_msg_gyro_acc_temp_encode(
+    10, 200, &mav_msg, &msg
+  );
+
+  static uint8_t buf[300];
+  unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mav_msg);
+  uart2SendData(len , buf);
 
   // Average the thrust command from the last timestep, generated externally by the controller
   thrustAccumulator += control->thrust * CONTROL_TO_ACC; // thrust is in grams, we need ms^-2
