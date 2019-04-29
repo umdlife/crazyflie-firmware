@@ -94,6 +94,7 @@ StateEstimatorType getStateEstimator(void) {
 }
 
 static void initEstimator() {
+  commMavlinkInit();
   estimatorFunctions[currentEstimator].init();
 }
 

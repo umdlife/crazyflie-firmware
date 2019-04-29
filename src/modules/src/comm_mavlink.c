@@ -27,7 +27,7 @@
 
 #include <stdbool.h>
 #include "comm_mavlink.h"
-#include "uart2.h" // uart2SendData
+#include "uart2.h" // uart2SendData, uart2Init
 #include "physicalConstants.h" // GRAVITY_MAGNITUDE
 #include "cf_math.h" // DEG_TO_RAD
 
@@ -83,7 +83,9 @@ void commMavlinkInit(void)
     return;
   gyro_acc_rate_limiter = 0;
   pose_rate_limiter = 0;
-  
+
+  uart2Init(921600);
+
   // Zeroing buffers
   for(unsigned int i = 0; i < MAVLINK_TDOA_FULL_MSG_LEN; i++) {
     buff_tdoa_msg[i] = 0;
