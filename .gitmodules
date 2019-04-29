@@ -10,3 +10,6 @@
 [submodule "vendor/CMSIS"]
 	path = vendor/CMSIS
 	url = https://github.com/ARM-software/CMSIS
+[submodule "src/lib/roadrunner_mavlink"]
+	path = src/lib/roadrunner_mavlink
+	url = https://github.com/umdlife/roadrunner_mavlink
