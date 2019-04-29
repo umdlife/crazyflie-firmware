@@ -5,6 +5,7 @@
 #include "estimator.h"
 #include "estimator_complementary.h"
 #include "estimator_kalman.h"
+#include "comm_mavlink.h"
 
 #define DEFAULT_ESTIMATOR complementaryEstimator
 static StateEstimatorType currentEstimator = anyEstimator;
@@ -102,6 +103,8 @@ bool stateEstimatorTest(void) {
 
 void stateEstimator(state_t *state, sensorData_t *sensors, control_t *control, const uint32_t tick) {
   estimatorFunctions[currentEstimator].update(state, sensors, control, tick);
+  commMavlinkSendImuRateLimited(sensors);
+  commMavlinkSendPoseRateLimited(state);
 }
 
 const char* stateEstimatorGetName() {
@@ -110,6 +113,8 @@ const char* stateEstimatorGetName() {
 
 
 bool estimatorEnqueueTDOA(const tdoaMeasurement_t *uwb) {
+  commMavlinkSendTDoA(uwb);
+
   if (estimatorFunctions[currentEstimator].estimatorEnqueueTDOA) {
     return estimatorFunctions[currentEstimator].estimatorEnqueueTDOA(uwb);
   }
