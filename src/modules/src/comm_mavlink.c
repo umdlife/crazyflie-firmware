@@ -110,6 +110,8 @@ bool commMavlinkTest(void)
 
 int commMavlinkSendTDoA(const tdoaMeasurement_t * tdoa)
 {
+  if (!isInit)
+    return -1;
   static mavlink_message_t mav_msg;
   static mavlink_tdoa_measurement_t msg;
 
@@ -133,6 +135,8 @@ int commMavlinkSendTDoA(const tdoaMeasurement_t * tdoa)
 
 int commMavlinkSendImuRateLimited(sensorData_t * sensors)
 {
+  if (!isInit)
+    return -1;
   if(gyro_acc_rate_limiter == MAVLINK_MSG_GYRO_ACC_RATE_LIMITER) {
     static mavlink_message_t mav_msg;
     static mavlink_gyro_acc_temp_t msg;
@@ -158,6 +162,8 @@ int commMavlinkSendImuRateLimited(sensorData_t * sensors)
 
 int commMavlinkSendPoseRateLimited(state_t * state)
 {
+  if (!isInit)
+    return -1;
   if(pose_rate_limiter == MAVLINK_MSG_POSE_RATE_LIMITER) {
     static mavlink_message_t mav_msg;
     static mavlink_pose_t msg;
