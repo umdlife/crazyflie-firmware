@@ -236,6 +236,10 @@ static float measNoiseGyro_yaw = 0.1f; // radians per second
 static float initialX = 0.5;
 static float initialY = 0.5;
 static float initialZ = 0.0;
+#ifndef GYRO_ACC_RATE_LIMITER
+#define GYRO_ACC_RATE_LIMITER 10
+#endif
+static unsigned int gyro_acc_rate_limiter = 0;
 
 // We track a TDOA skew as part of the Kalman filter
 static const float stdDevInitialSkew = 0.1;
@@ -404,25 +408,28 @@ void estimatorKalman(state_t *state, sensorData_t *sensors, control_t *control, 
       // Currently the magnetometer doesn't play a part in the estimation
   }
 
-  /* MAVLink Layer Gyro, TODO: find better location */
-  static mavlink_message_t mav_msg;
-  static mavlink_gyro_acc_temp_t msg;
-  
-  msg.xacc = GRAVITY_MAGNITUDE * sensors->acc.x;
-  msg.yacc = GRAVITY_MAGNITUDE * sensors->acc.y;
-  msg.zacc = GRAVITY_MAGNITUDE * sensors->acc.z;
-  msg.xgyro = sensors->gyro.x * DEG_TO_RAD;
-  msg.ygyro = sensors->gyro.y * DEG_TO_RAD;
-  msg.zgyro = sensors->gyro.z * DEG_TO_RAD;
-  memcpy(_MAV_PAYLOAD_NON_CONST(&mav_msg), &msg, MAVLINK_MSG_ID_GYRO_ACC_TEMP_LEN);
+  if(gyro_acc_rate_limiter == GYRO_ACC_RATE_LIMITER) {
+    /* MAVLink Layer Gyro, TODO: find better location */
+    static mavlink_message_t mav_msg;
+    static mavlink_gyro_acc_temp_t msg;
+    msg.xacc = GRAVITY_MAGNITUDE * sensors->acc.x;
+    msg.yacc = GRAVITY_MAGNITUDE * sensors->acc.y;
+    msg.zacc = GRAVITY_MAGNITUDE * sensors->acc.z;
+    msg.xgyro = sensors->gyro.x * DEG_TO_RAD;
+    msg.ygyro = sensors->gyro.y * DEG_TO_RAD;
+    msg.zgyro = sensors->gyro.z * DEG_TO_RAD;
+    // memcpy(_MAV_PAYLOAD_NON_CONST(&mav_msg), &msg, MAVLINK_MSG_ID_GYRO_ACC_TEMP_LEN);
 
-  mavlink_msg_gyro_acc_temp_encode(
-    10, 200, &mav_msg, &msg
-  );
+    mavlink_msg_gyro_acc_temp_encode(
+      10, 200, &mav_msg, &msg
+    );
 
-  static uint8_t buf[300];
-  unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mav_msg);
-  uart2SendData(len , buf);
+    static uint8_t buf[300];
+    unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mav_msg);
+    uart2SendData(len , buf);
+    gyro_acc_rate_limiter = 0;
+  }
+  gyro_acc_rate_limiter += 1;
 
   // Average the thrust command from the last timestep, generated externally by the controller
   thrustAccumulator += control->thrust * CONTROL_TO_ACC; // thrust is in grams, we need ms^-2

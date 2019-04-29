@@ -96,7 +96,7 @@ static void enqueueTDOA(const tdoaAnchorContext_t* anchorACtx, const tdoaAnchorC
       msg.anchor_bx = anchorBCtx->anchorInfo->position.x;
       msg.anchor_by = anchorBCtx->anchorInfo->position.y;
       msg.anchor_bz = anchorBCtx->anchorInfo->position.z;
-      memcpy(_MAV_PAYLOAD_NON_CONST(&mav_msg), &msg, MAVLINK_MSG_ID_TDOA_MEASUREMENT_LEN);
+      // memcpy(_MAV_PAYLOAD_NON_CONST(&mav_msg), &msg, MAVLINK_MSG_ID_TDOA_MEASUREMENT_LEN);
 
       mavlink_msg_tdoa_measurement_encode(
         10, 200, &mav_msg, &msg
