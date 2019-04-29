@@ -66,12 +66,12 @@ static uint8_t buff_imu_msg[MAVLINK_IMU_FULL_MSG_LEN];
 static uint8_t buff_pose_msg[MAVLINK_POSE_MSG_LEN];
 
 #ifndef MAVLINK_MSG_GYRO_ACC_RATE_LIMITER
-#define MAVLINK_MSG_GYRO_ACC_RATE_LIMITER 10
+#define MAVLINK_MSG_GYRO_ACC_RATE_LIMITER 45
 #endif
 static unsigned int gyro_acc_rate_limiter = 0;
 
 #ifndef MAVLINK_MSG_POSE_RATE_LIMITER
-#define MAVLINK_MSG_POSE_RATE_LIMITER 10
+#define MAVLINK_MSG_POSE_RATE_LIMITER 45
 #endif
 static unsigned int pose_rate_limiter = 0;
 
@@ -84,7 +84,7 @@ void commMavlinkInit(void)
   gyro_acc_rate_limiter = 0;
   pose_rate_limiter = 0;
 
-  uart2Init(921600);
+  uart2Init(1000000);
 
   // Zeroing buffers
   for(unsigned int i = 0; i < MAVLINK_TDOA_FULL_MSG_LEN; i++) {
