@@ -121,7 +121,8 @@ static Axis3f  gyroBias;
 #if defined(SENSORS_GYRO_BIAS_CALCULATE_STDDEV) && defined (GYRO_BIAS_LIGHT_WEIGHT)
 static Axis3f  gyroBiasStdDev;
 #endif
-static bool    gyroBiasFound = false;
+static bool gyroBiasFound = false;
+static bool accScaleFound = false;
 static float accScaleSum = 0;
 static float accScale = 1;
 
@@ -571,10 +572,9 @@ bool sensorsBmi088Bmp388Test(void)
  */
 static bool processAccScale(int16_t ax, int16_t ay, int16_t az)
 {
-  static bool accBiasFound = false;
   static uint32_t accScaleSumCount = 0;
 
-  if (!accBiasFound)
+  if (!accScaleFound)
   {
     accScaleSum += sqrtf(powf(ax * SENSORS_BMI088_G_PER_LSB_CFG, 2) + powf(ay * SENSORS_BMI088_G_PER_LSB_CFG, 2) + powf(az * SENSORS_BMI088_G_PER_LSB_CFG, 2));
     accScaleSumCount++;
@@ -582,11 +582,11 @@ static bool processAccScale(int16_t ax, int16_t ay, int16_t az)
     if (accScaleSumCount == SENSORS_ACC_SCALE_SAMPLES)
     {
       accScale = accScaleSum / SENSORS_ACC_SCALE_SAMPLES;
-      accBiasFound = true;
+      accScaleFound = true;
     }
   }
 
-  return accBiasFound;
+  return accScaleFound;
 }
 
 #ifdef GYRO_BIAS_LIGHT_WEIGHT
@@ -759,6 +759,26 @@ static bool sensorsFindBiasValue(BiasObj* bias)
       bias->bias.z = bias->mean.z;
       foundBias = true;
       bias->isBiasValueFound = true;
+      configblockSetGyroCalibrated(true);
+      configblockSetGyroBiasX(bias->bias.x);
+      configblockSetGyroBiasY(bias->bias.y);
+      configblockSetGyroBiasZ(bias->bias.z);
+      // This is only saving if a modification happened
+      if(configblockSave()) {
+        DEBUG_PRINT("BMI088 Calib to EEPROM [OK].\n");
+      } else {
+        DEBUG_PRINT("BMI088 Calib to EEPROM [FAIL].\n");
+      }
+    } else {
+      if(configblockGetGyroCalibrated()) {
+        varianceSampleTime = xTaskGetTickCount();
+        bias->bias.x = configblockGetGyroBiasX();
+        bias->bias.y = configblockGetGyroBiasY();
+        bias->bias.z = configblockGetGyroBiasZ();
+        foundBias = true;
+        bias->isBiasValueFound = true;
+        DEBUG_PRINT("BMI088 Gyro calib from EEPROM [OK].\n");
+      }
     }
   }
 

@@ -159,8 +159,6 @@ static inline bool stateEstimatorHasHeightPacket(heightMeasurement_t *height) {
 #define MAX_COVARIANCE (100)
 #define MIN_COVARIANCE (1e-6f)
 
-
-
 /**
  * Quadrocopter State
  *
