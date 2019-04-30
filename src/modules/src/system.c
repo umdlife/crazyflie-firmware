@@ -160,9 +160,9 @@ void systemTask(void *arg)
   commInit();
   commanderInit();
 
-  StateEstimatorType estimator = anyEstimator;
+  StateEstimatorType estimator = complementaryEstimator;
   deckInit();
-  estimator = deckGetRequiredEstimator();
+  // estimator = deckGetRequiredEstimator();
   stabilizerInit(estimator);
   if (deckGetRequiredLowInterferenceRadioMode() && platformConfigPhysicalLayoutAntennasAreClose())
   {
