@@ -39,7 +39,7 @@
  * MAVLink2 Header: 10 bytes
  * 
  * Payload: MAVLINK_MSG_ID_TDOA_MEASUREMENT_LEN 
- *          MAVLINK_MSG_ID_GYRO_ACC_TEMP_LEN
+ *          MAVLINK_MSG_ID_GYRO_ACC_LEN
  * 
  * MAVLink2 Signature: 13 bytes
  * MAVLink CRC: 2 bytes
@@ -59,14 +59,16 @@
 
 // Length of the buffers +1 to have a \0 at the end.
 #define MAVLINK_TDOA_FULL_MSG_LEN MAVLINK_MSG_ID_TDOA_MEASUREMENT_LEN + MAVLINK_PROTOCOL_OVERHEAD + 1
-#define MAVLINK_IMU_FULL_MSG_LEN MAVLINK_MSG_ID_GYRO_ACC_TEMP_LEN + MAVLINK_PROTOCOL_OVERHEAD + 1
+#define MAVLINK_IMU_FULL_MSG_LEN MAVLINK_MSG_ID_GYRO_ACC_LEN + MAVLINK_PROTOCOL_OVERHEAD + 1
 #define MAVLINK_POSE_MSG_LEN MAVLINK_MSG_ID_POSE_LEN + MAVLINK_PROTOCOL_OVERHEAD + 1
+#define MAVLINK_QUATERNION_MSG_LEN MAVLINK_MSG_ID_QUATERNION_LEN + MAVLINK_PROTOCOL_OVERHEAD + 1
 static uint8_t buff_tdoa_msg[MAVLINK_TDOA_FULL_MSG_LEN];
 static uint8_t buff_imu_msg[MAVLINK_IMU_FULL_MSG_LEN];
 static uint8_t buff_pose_msg[MAVLINK_POSE_MSG_LEN];
+static uint8_t buff_quaternion_msg[MAVLINK_QUATERNION_MSG_LEN];
 
 #ifndef MAVLINK_MSG_GYRO_ACC_RATE_LIMITER
-#define MAVLINK_MSG_GYRO_ACC_RATE_LIMITER 45
+#define MAVLINK_MSG_GYRO_ACC_RATE_LIMITER 10
 #endif
 static unsigned int gyro_acc_rate_limiter = 0;
 
@@ -75,6 +77,23 @@ static unsigned int gyro_acc_rate_limiter = 0;
 #endif
 static unsigned int pose_rate_limiter = 0;
 
+#ifndef MAVLINK_MSG_QUATERNION_RATE_LIMITER
+#define MAVLINK_MSG_QUATERNION_RATE_LIMITER 45
+#endif
+static unsigned int quaternion_rate_limiter = 0;
+
+typedef union {
+  struct {
+        float x;
+        float y;
+        float z;
+        float count;
+  };
+  float axis[4];
+} Accumulator3f16;
+
+static Accumulator3f16 accCommAccumulator;
+static Accumulator3f16 gyroCommAccumulator;
 
 static bool isInit;
 void commMavlinkInit(void)
@@ -97,6 +116,10 @@ void commMavlinkInit(void)
 
   for(unsigned int i = 0; i < MAVLINK_POSE_MSG_LEN; i++) {
     buff_pose_msg[i] = 0;
+  }
+
+  for(unsigned int i = 0; i < MAVLINK_QUATERNION_MSG_LEN; i++) {
+    buff_quaternion_msg[i] = 0;
   }
 
   isInit = true;
@@ -133,33 +156,56 @@ int commMavlinkSendTDoA(const tdoaMeasurement_t * tdoa)
   return len;
 }
 
+// Accelerometer and gyroscope
 int commMavlinkSendImuRateLimited(sensorData_t * sensors)
 {
   if (!isInit)
     return -1;
+  
+  accCommAccumulator.x += sensors->acc.x;
+  accCommAccumulator.y += sensors->acc.y;
+  accCommAccumulator.z += sensors->acc.z;
+  accCommAccumulator.count += 1.0f;
+  gyroCommAccumulator.x += sensors->gyro.x;
+  gyroCommAccumulator.y += sensors->gyro.y;
+  gyroCommAccumulator.z += sensors->gyro.z;
+  gyroCommAccumulator.count += 1.0f;
+  
   if(gyro_acc_rate_limiter == MAVLINK_MSG_GYRO_ACC_RATE_LIMITER) {
     static mavlink_message_t mav_msg;
-    static mavlink_gyro_acc_temp_t msg;
-    msg.xacc = GRAVITY_MAGNITUDE * sensors->acc.x;
-    msg.yacc = GRAVITY_MAGNITUDE * sensors->acc.y;
-    msg.zacc = GRAVITY_MAGNITUDE * sensors->acc.z;
-    msg.xgyro = sensors->gyro.x * DEG_TO_RAD;
-    msg.ygyro = sensors->gyro.y * DEG_TO_RAD;
-    msg.zgyro = sensors->gyro.z * DEG_TO_RAD;
+    static mavlink_gyro_acc_t msg;
+    msg.xacc = GRAVITY_MAGNITUDE * (accCommAccumulator.x / accCommAccumulator.count);
+    msg.yacc = GRAVITY_MAGNITUDE * (accCommAccumulator.y / accCommAccumulator.count);
+    msg.zacc = GRAVITY_MAGNITUDE * (accCommAccumulator.z / accCommAccumulator.count);
+    msg.xgyro = (gyroCommAccumulator.x / gyroCommAccumulator.count) * DEG_TO_RAD;
+    msg.ygyro = (gyroCommAccumulator.y / gyroCommAccumulator.count) * DEG_TO_RAD;
+    msg.zgyro = (gyroCommAccumulator.z / gyroCommAccumulator.count) * DEG_TO_RAD;
 
-    mavlink_msg_gyro_acc_temp_encode(
+    mavlink_msg_gyro_acc_encode(
       10, 200, &mav_msg, &msg
     );
 
     unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buff_imu_msg, &mav_msg);
     uart2SendData(len , buff_imu_msg);
     gyro_acc_rate_limiter = 0;
+
+    accCommAccumulator.x = 0.0;
+    accCommAccumulator.y = 0.0;
+    accCommAccumulator.z = 0.0;
+    accCommAccumulator.count = 0.0;
+
+    gyroCommAccumulator.x = 0.0;
+    gyroCommAccumulator.y = 0.0;
+    gyroCommAccumulator.z = 0.0;
+    gyroCommAccumulator.count = 0.0;
+
     return len;
   }
   gyro_acc_rate_limiter += 1;
   return 0;
 }
 
+// Position, velocity, quaternion
 int commMavlinkSendPoseRateLimited(state_t * state)
 {
   if (!isInit)
@@ -191,3 +237,32 @@ int commMavlinkSendPoseRateLimited(state_t * state)
   pose_rate_limiter += 1;
   return 0;
 }
+
+// Quaternion
+int commMavlinkSendQuaternionRateLimited(state_t * state)
+{
+  if (!isInit)
+    return -1;
+  if(quaternion_rate_limiter == MAVLINK_MSG_QUATERNION_RATE_LIMITER) {
+    static mavlink_message_t mav_msg;
+    static mavlink_quaternion_t msg;
+
+    msg.qx = state->attitudeQuaternion.x;
+    msg.qy = state->attitudeQuaternion.y;
+    msg.qz = state->attitudeQuaternion.z;
+    msg.qw = state->attitudeQuaternion.w;
+
+    mavlink_msg_quaternion_encode(
+      10, 200, &mav_msg, &msg
+    );
+
+    unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buff_quaternion_msg, &mav_msg);
+    uart2SendData(len , buff_quaternion_msg);
+    quaternion_rate_limiter = 0;
+    return len;
+  }
+  quaternion_rate_limiter += 1;
+  return 0;
+}
+
+

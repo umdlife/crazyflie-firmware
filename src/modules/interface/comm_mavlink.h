@@ -36,5 +36,6 @@ bool commMavlinkTest(void);
 int commMavlinkSendTDoA(const tdoaMeasurement_t * tdoa);
 int commMavlinkSendImuRateLimited(sensorData_t * sensors);
 int commMavlinkSendPoseRateLimited(state_t * state);
+int commMavlinkSendQuaternionRateLimited(state_t * state);
 
 #endif //__COMM_MAVLINK_H__

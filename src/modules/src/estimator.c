@@ -105,7 +105,8 @@ bool stateEstimatorTest(void) {
 void stateEstimator(state_t *state, sensorData_t *sensors, control_t *control, const uint32_t tick) {
   estimatorFunctions[currentEstimator].update(state, sensors, control, tick);
   commMavlinkSendImuRateLimited(sensors);
-  commMavlinkSendPoseRateLimited(state);
+  commMavlinkSendQuaternionRateLimited(state);
+  // commMavlinkSendPoseRateLimited(state);
 }
 
 const char* stateEstimatorGetName() {
