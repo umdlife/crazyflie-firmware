@@ -82,6 +82,9 @@ static unsigned int pose_rate_limiter = 0;
 #endif
 static unsigned int quaternion_rate_limiter = 0;
 
+#define MAVLINK_SYSTEM_ID 10
+#define MAVLINK_COMPONENT_ID 200
+
 typedef union {
   struct {
         float x;
@@ -148,7 +151,7 @@ int commMavlinkSendTDoA(const tdoaMeasurement_t * tdoa)
   msg.anchor_bz = tdoa->anchorPosition[1].z;
 
   mavlink_msg_tdoa_measurement_encode(
-    10, 200, &mav_msg, &msg
+    MAVLINK_SYSTEM_ID, MAVLINK_COMPONENT_ID, &mav_msg, &msg
   );
 
   unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buff_tdoa_msg, &mav_msg);
@@ -182,7 +185,7 @@ int commMavlinkSendImuRateLimited(sensorData_t * sensors)
     msg.zgyro = (gyroCommAccumulator.z / gyroCommAccumulator.count) * DEG_TO_RAD;
 
     mavlink_msg_gyro_acc_encode(
-      10, 200, &mav_msg, &msg
+      MAVLINK_SYSTEM_ID, MAVLINK_COMPONENT_ID, &mav_msg, &msg
     );
 
     unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buff_imu_msg, &mav_msg);
@@ -226,7 +229,7 @@ int commMavlinkSendPoseRateLimited(state_t * state)
     msg.qw = state->attitudeQuaternion.w;
 
     mavlink_msg_pose_encode(
-      10, 200, &mav_msg, &msg
+      MAVLINK_SYSTEM_ID, MAVLINK_COMPONENT_ID, &mav_msg, &msg
     );
 
     unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buff_pose_msg, &mav_msg);
@@ -253,7 +256,7 @@ int commMavlinkSendQuaternionRateLimited(state_t * state)
     msg.qw = state->attitudeQuaternion.w;
 
     mavlink_msg_quaternion_encode(
-      10, 200, &mav_msg, &msg
+      MAVLINK_SYSTEM_ID, MAVLINK_COMPONENT_ID, &mav_msg, &msg
     );
 
     unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buff_quaternion_msg, &mav_msg);

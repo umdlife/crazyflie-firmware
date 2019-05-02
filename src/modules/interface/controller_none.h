@@ -21,28 +21,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
- * controller.h - Controller interface
+ * controller_none.h - None controller
  */
-#ifndef __CONTROLLER_H__
-#define __CONTROLLER_H__
-
 #include "stabilizer_types.h"
 
-typedef enum {
-  ControllerTypeAny,
-  ControllerTypePID,
-  ControllerTypeMellinger,
-  ControllerTypeNone,
-  ControllerType_COUNT,
-} ControllerType;
+void controllerNoneInit(void) {}
 
-void controllerInit(ControllerType controller);
-bool controllerTest(void);
-void controller(control_t *control, setpoint_t *setpoint,
+bool controllerNoneTest(void)
+{
+    return true;
+}
+
+void controllerNone(control_t *control, setpoint_t *setpoint,
                                          const sensorData_t *sensors,
                                          const state_t *state,
-                                         const uint32_t tick);
-ControllerType getControllerType(void);
-const char* controllerGetName();
-
-#endif //__CONTROLLER_H__
+                                         const uint32_t tick)
+{}
