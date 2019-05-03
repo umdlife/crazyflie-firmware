@@ -142,7 +142,6 @@ int commMavlinkSendTDoA(const tdoaMeasurement_t * tdoa)
   static mavlink_tdoa_measurement_t msg;
 
   msg.dist_diff = tdoa->distanceDiff;
-  msg.stddev = tdoa->stdDev;
   msg.anchor_ax = tdoa->anchorPosition[0].x;
   msg.anchor_ay = tdoa->anchorPosition[0].y;
   msg.anchor_az = tdoa->anchorPosition[0].z;
