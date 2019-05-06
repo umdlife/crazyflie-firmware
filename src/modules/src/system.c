@@ -97,6 +97,7 @@ void systemInit(void)
   sysLoadInit();
 
   /* Initialized here so that DEBUG_PRINT (buffered) can be used early */
+  debugInit();
   crtpInit();
   consoleInit();
 
@@ -148,10 +149,10 @@ void systemTask(void *arg)
 #endif
 
 #ifdef ENABLE_UART1
-  uart1Init();
+  uart1Init(9600);
 #endif
 #ifdef ENABLE_UART2
-  uart2Init();
+  uart2Init(115200);
 #endif
 
   //Init the high-levels modules

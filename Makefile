@@ -124,7 +124,7 @@ PROJ_OBJ += cppm.o
 PROJ_OBJ += bmi055_accel.o bmi055_gyro.o bmi160.o bmp280.o bstdr_comm_support.o bmm150.o
 PROJ_OBJ += bmi088_accel.o bmi088_gyro.o bmi088_fifo.o bmp3.o
 PROJ_OBJ += pca9685.o vl53l0x.o pca95x4.o pca9555.o vl53l1x.o pmw3901.o
-PROJ_OBJ += amg8833.o
+PROJ_OBJ += amg8833.o lh_bootloader.o
 
 # USB Files
 PROJ_OBJ += usb_bsp.o usblink.o usbd_desc.o usb.o
@@ -156,7 +156,7 @@ PROJ_OBJ += position_estimator_altitude.o position_controller_pid.o
 PROJ_OBJ += estimator.o estimator_complementary.o
 PROJ_OBJ += controller.o controller_pid.o controller_mellinger.o
 PROJ_OBJ += power_distribution_$(POWER_DISTRIBUTION).o
-PROJ_OBJ += estimator_kalman.o
+PROJ_OBJ += estimator_kalman.o kalman_core.o
 
 # High-Level Commander
 PROJ_OBJ += crtp_commander_high_level.o planner.o pptraj.o
@@ -227,6 +227,12 @@ PROJ_OBJ += configblockeeprom.o crc_bosch.o
 PROJ_OBJ += sleepus.o
 PROJ_OBJ += pulse_processor.o lighthouse_geometry.o
 
+ifeq ($(DEBUG_PRINT_ON_SEGGER_RTT), 1)
+VPATH += $(LIB)/Segger_RTT/RTT
+INCLUDES += -I$(LIB)/Segger_RTT/RTT
+PROJ_OBJ += SEGGER_RTT.o SEGGER_RTT_printf.o
+CFLAGS += -DDEBUG_PRINT_ON_SEGGER_RTT
+endif
 
 # Libs
 PROJ_OBJ += libarm_math.a
@@ -241,7 +247,7 @@ SIZE = $(CROSS_COMPILE)size
 OBJCOPY = $(CROSS_COMPILE)objcopy
 GDB = $(CROSS_COMPILE)gdb
 
-INCLUDES  = -I$(FREERTOS)/include -I$(PORT) -Isrc
+INCLUDES += -I$(FREERTOS)/include -I$(PORT) -Isrc
 INCLUDES += -Isrc/config -Isrc/hal/interface -Isrc/modules/interface
 INCLUDES += -Isrc/utils/interface -Isrc/drivers/interface -Isrc/platform
 INCLUDES += -Ivendor/CMSIS/CMSIS/Include -Isrc/drivers/bosch/interface
